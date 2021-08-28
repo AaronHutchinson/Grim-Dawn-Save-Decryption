@@ -21,7 +21,7 @@ Decryption tools for save files for the PC game Grim Dawn. These files are an up
 * `decrypt-transfer.cpp`:
   * an additional byte "3" is read just before reading the sacks
 
-**Acknowledgements**:
+**Acknowledgments**:
 * Nearly all credit goes to "Christopher" of https://www.lost.org.uk, as (as far as I know) they wrote the original file. I merely updated it.
 * Thanks to "mamba" for sharing some of their GD Stash code and giving insight on how to read/interpret some of the new data.
 
