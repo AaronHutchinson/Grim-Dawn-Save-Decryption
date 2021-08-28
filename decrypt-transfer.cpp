@@ -1,3 +1,8 @@
+/*
+This is a decryption tool for the Grim Dawn transfer.gst (softcore) or transfer.gsh (hardcore) file, compatible with Grim Dawn version 1.1.9.1 with both Ashes of Malmouth and Forgotten Gods expansions and Crucible DLC.
+The original version of this file was written by "Christopher" and can be found at https://www.lost.org.uk/grimdawn.html. Nearly all credit goes to them.
+*/
+
 #include <stdio.h>
 #include <stdint.h>
 #include <iostream>
