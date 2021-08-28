@@ -4,6 +4,7 @@ Decryption tools for save files for the PC game Grim Dawn. These files are an up
 **Compatibility**: These tools were updated to be compatible with Grim Dawn version 1.1.9.1 with both Ashes of Malmouth and Forgotten Gods expansions and Crucible DLC. The code is almost certainly incompatible with vanilla GD without the expansions/DLC.
 
 **File Correspondence**:
+* Christopher's original files are contained here for comparison and as a backup. These are: `decryptsave.cc`, `decryptstash.cc`, `decryptstash.java`, and `decryptquests.cc`.
 * `decrypt-player.cpp` is the updated version of `decryptsave.cc`.
 * `decrypt-transfer.cpp` is the updated version of `decryptstash.cc`.
 * I haven't updated `decryptquests.cc` or `decryptstash.java` and am unsure if I ever will.
