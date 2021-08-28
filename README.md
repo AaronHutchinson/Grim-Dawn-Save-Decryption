@@ -6,9 +6,9 @@ Decryption tools for save files for the PC game Grim Dawn. These files are an up
 **Major changes** from original version:
 * updated "version number" checks throughout to match current GD encoding versions
 * an additional byte "3" is read after the header
-* character_stash was updated to read/write multiple stash tabs, as AoM changed personal stash to have multiple tabs
-* ui_settings reads/writes an additional 10 integers at the end of the block. The usage/interpretation of these integers is unknown to me, and in all of my testing all but the last were equal to 4294967295.
-* play_stats reads/writes an additional 13 bytes, which I believe are related to Shattered Realm.
+* `character_stash` was updated to read/write multiple stash tabs, as AoM changed personal stash to have multiple tabs
+* `ui_settings` reads/writes an additional 10 integers at the end of the block. The usage/interpretation of these integers is unknown to me, and in all of my testing all but the last were equal to 4294967295.
+* `play_stats` reads/writes some additional data along with 13 bytes, which it seems are related to Shattered Realm.
 * to help with debugging and out of my own curiosity, I wrote primitive print functions for many of the classes to actually see what the data is.
 * exception handling was updated to report more information about where runtime errors occur.
 * changed a few variable names to be more accurate or descriptive about what information they're holding.
@@ -16,3 +16,5 @@ Decryption tools for save files for the PC game Grim Dawn. These files are an up
 **Acknowledgements**:
 * Nearly all credit goes to "Christopher" of https://www.lost.org.uk, as (as far as I know) they wrote the original file. I merely updated it.
 * Thanks to "mamba" for sharing some of their GD Stash code and giving insight on how to read/interpret some of the new data.
+
+**Disclaimer**: I am not responsible if these tools corrupt your game files. Make backups of all of your files before using this tool.
