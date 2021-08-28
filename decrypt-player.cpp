@@ -12,10 +12,6 @@ The original version of this file was written by "Christopher" and can be found 
 #include <vector>
 #include <exception>
 
-// testing
-#include <locale>
-#include <codecvt>
-
 static std::exception e;
 
 class gdc_file;
@@ -617,7 +613,7 @@ public:
 		}
 
 		if (next_int())
-			throw std::runtime_error("read_block_end: expected end-of-block character 0.");;
+			throw std::runtime_error("read_block_end: expected end-of-block character 0.");
 	}
 
 	void write_int(uint32_t val)
@@ -2165,19 +2161,13 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	// Testing: change name of char
-	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-	std::string newname = "hacker";
-	std::wstring widename = converter.from_bytes(newname);
-	gdc.hdr.name.assign(widename);
-
 	try
 	{
 		gdc.write(argv[2]);
 	}
 	catch (const std::exception &e)
 	{
-		printf("Error writing file: %s\n", argv[2]);
+		printf("Error writing file: %s\n", e.what());
 		return 1;
 	}
 
