@@ -1,5 +1,5 @@
 # Grim-Dawn-Save-Decryption
-Decryption tools for save files for the PC game Grim Dawn. These files are an updated version of those written by "Christopher" and found at https://www.lost.org.uk/grimdawn.html, and nearly all credit for them goes to them.
+Decryption tools for save files for the PC game Grim Dawn. These files are an updated version of those written by "Christopher" and found at https://www.lost.org.uk/grimdawn.html, and nearly all credit for these tools goes to them.
 
 **Compatibility**: These tools were updated to be compatible with Grim Dawn version 1.1.9.1 with both Ashes of Malmouth and Forgotten Gods expansions and Crucible DLC. The code is almost certainly incompatible with vanilla GD without the expansions/DLC.
 
