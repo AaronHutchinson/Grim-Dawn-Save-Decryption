@@ -18,7 +18,7 @@ Decryption tools for save files for the PC game Grim Dawn. These files are an up
   * an additional byte "3" is read after the header
   * `character_info`: the variable `lootMode` was changed to an array, which holds the new loot filter data.
   * `character_stash`: updated to read/write multiple stash tabs, as AoM changed personal stash to have multiple tabs.
-  * `ui_settings`: reads/writes an additional 10 integers at the end of the block. The usage/interpretation of these integers is unknown to me, and in all of my testing all but the last were equal to 4294967295.
+  * `ui_settings`: number of `slots` read was changed from 36 to 46. My guess is this is to allow assigning skills for controllers.
   * `play_stats`: reads/writes some additional data along with 13 bytes, which it seems are related to Shattered Realm.
 * `decrypt-transfer.cpp`:
   * an additional byte "3" is read just before reading the sacks.
