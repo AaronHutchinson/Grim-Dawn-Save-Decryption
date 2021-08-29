@@ -344,7 +344,7 @@ public:
 class ui_settings
 {
 public:
-	hot_slot slots[36];
+	hot_slot slots[46];
 	string unknown4[5];
 	string unknown5[5];
 	uint32_t unknown2;
@@ -352,7 +352,6 @@ public:
 	uint8_t unknown6[5];
 	uint8_t unknown1;
 	uint8_t unknown3;
-	uint32_t unknown_ints[10];
 
 	void read(gdc_file *);
 	void write(gdc_file *);
@@ -1580,17 +1579,12 @@ void ui_settings::read(gdc_file *gdc)
 		unknown6[i] = gdc->read_byte();
 	}
 
-	for (unsigned i = 0; i < 36; i++)
+	for (unsigned i = 0; i < 46; i++)
 	{
 		slots[i].read(gdc);
 	}
 
 	cameraDistance = gdc->read_float();
-	
-	// Unsure what the next 40 bytes are. Controller configuration?
-	for (int i = 0; i < 10; i++){
-		unknown_ints[i] = gdc->read_int();
-	}
 
 	gdc->read_block_end(&b);
 }
@@ -1613,16 +1607,12 @@ void ui_settings::write(gdc_file *gdc)
 		gdc->write_byte(unknown6[i]);
 	}
 
-	for (unsigned i = 0; i < 36; i++)
+	for (unsigned i = 0; i < 46; i++)
 	{
 		slots[i].write(gdc);
 	}
 
 	gdc->write_float(cameraDistance);
-
-	for (int i = 0; i < 10; i++){
-		gdc->write_int(unknown_ints[i]);
-	}
 
 	gdc->write_block_end(&b);
 }
@@ -1641,7 +1631,7 @@ void ui_settings::print()
 		printf("  unknown6[%i] = %hhu\n", i, unknown6[i]);
 	}
 
-	for (unsigned i = 0; i < 36; i++)
+	for (unsigned i = 0; i < 46; i++)
 	{	
 		printf("  slots[%i]:\n", i);
 		slots[i].print();
@@ -1649,10 +1639,6 @@ void ui_settings::print()
 
 	printf("  cameraDistance = %f\n", cameraDistance);
 	
-	// Unsure what the next 40 bytes are. Controller configuration?
-	for (int i = 0; i < 10; i++){
-		printf("unknown_ints[%i] = %" PRIu32 "\n", i, unknown_ints[i]);
-	}
 }
 
 void hot_slot::read(gdc_file *gdc)
