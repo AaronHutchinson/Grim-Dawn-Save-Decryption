@@ -1,6 +1,10 @@
 /*
-This is a decryption tool for Grim Dawn player.gdc files, compatible with Grim Dawn version 1.1.9.1 with both Ashes of Malmouth and Forgotten Gods expansions and Crucible DLC.
-The original version of this file was written by "Christopher" and can be found at https://www.lost.org.uk/grimdawn.html. Nearly all credit goes to them.
+This is a decryption tool for Grim Dawn player.gdc files, 
+compatible with Grim Dawn version 1.1.9.1 with both Ashes of Malmouth 
+and Forgotten Gods expansions and Crucible DLC.
+
+The original version of this file was written by "Christopher" and can 
+be found at https://www.lost.org.uk/grimdawn.html. Nearly all credit goes to them.
 */
 
 #include <stdio.h>
@@ -12,666 +16,194 @@ The original version of this file was written by "Christopher" and can be found 
 #include <vector>
 #include <exception>
 
+#include "decrypt-player.h"
+
 static std::exception e;
 
-class gdc_file;
 
-template <typename T> class vector : public std::vector<T>
+
+file::file(const char *name, const char *mode)
 {
-public:
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
+	fp = fopen(name, mode);
+}
 
-class string : public std::string
+file::~file()
 {
-public:
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
+	if (fp) fclose(fp);
+}
 
-class wstring : public std::wstring
+
+void gdc_file::read_key()
 {
-public:
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
+	uint32_t k;
 
-class uid
-{
-public:
-	uint8_t id[16];
+	if (fread(&k, 4, 1, fp) != 1)
+		throw std::runtime_error("Error in read_key.");
 
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
+	k ^= 0x55555555;
 
-class item
-{
-public:
-	string baseName;
-	string prefixName;
-	string suffixName;
-	string modifierName;
-	string transmuteName;
-	string componentName;
-	string relicBonus;
-	string augmentName;
-	uint32_t stackCount;
-	uint32_t seed;
-	uint32_t componentSeed;
-	uint32_t unknown;
-	uint32_t augmentSeed;
-	uint32_t var1;
+	key = k;
 
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
-
-class header
-{
-public:
-	wstring name;
-	string tag;
-	uint32_t level;
-	uint8_t sex;
-	uint8_t hardcore;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
-
-class character_info
-{
-public:
-	string texture;
-	uint32_t money;
-	uint32_t lootMode [39];
-	uint32_t currentTribute;
-	uint32_t unknown;
-	uint8_t isInMainQuest;
-	uint8_t hasBeenInGame;
-	uint8_t difficulty;
-	uint8_t greatestDifficulty;
-	uint8_t greatestSurvivalDifficulty;
-	uint8_t compassState;
-	uint8_t skillWindowShowHelp;
-	uint8_t weaponSwapActive;
-	uint8_t weaponSwapEnabled;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
-
-class character_bio
-{
-public:
-	uint32_t level;
-	uint32_t experience;
-	uint32_t attributePointsUnspent;
-	uint32_t skillPointsUnspent;
-	uint32_t devotionPointsUnspent;
-	uint32_t totalDevotionUnlocked;
-	float physique;
-	float cunning;
-	float spirit;
-	float health;
-	float energy;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
-
-class inventory_item : public item
-{
-public:
-	uint32_t x;
-	uint32_t y;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
-
-class inventory_sack
-{
-public:
-	vector<inventory_item> items;
-	uint8_t tempBool;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
-
-class inventory_equipment : public item
-{
-public:
-	uint8_t attached;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
-
-class inventory
-{
-public:
-	uint32_t numBags;
-	vector<inventory_sack> sacks;
-	inventory_equipment equipment[12];
-	inventory_equipment weapon1[2];
-	inventory_equipment weapon2[2];
-	uint32_t focused;
-	uint32_t selected;
-	uint8_t flag;
-	uint8_t useAlternate;
-	uint8_t alternate1;
-	uint8_t alternate2;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
-
-class stash_item : public item
-{
-public:
-	float x;
-	float y;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
-
-class character_stash_tab
-{
-public:
-	vector<stash_item> items;
-	uint32_t width;
-	uint32_t height;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
-
-class character_stash
-{
-public:
-	vector<character_stash_tab> tabs;
-	uint32_t stashTabsPurchased;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
-
-class respawn_list
-{
-public:
-	vector<uid> uids[3];
-	uid spawn[3];
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
-
-class teleport_list
-{
-public:
-	vector<uid> uids[3];
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
-
-class marker_list
-{
-public:
-	vector<uid> uids[3];
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
-
-class shrine_list
-{
-public:
-	vector<uid> uids[6];
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
-
-class skill
-{
-public:
-	string name;
-	string autoCastSkill;
-	string autoCastController;
-	uint32_t level;
-	uint32_t devotionLevel;
-	uint32_t experience;
-	uint32_t active;
-	uint8_t enabled;
-	uint8_t unknown1;
-	uint8_t unknown2;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
-
-class item_skill
-{
-public:
-	string name;
-	string autoCastSkill;
-	string autoCastController;
-	string itemName;
-	uint32_t itemSlot;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
-
-class character_skills
-{
-public:
-	vector<skill> skills;
-	vector<item_skill> itemSkills;
-	uint32_t masteriesAllowed;
-	uint32_t skillReclamationPointsUsed;
-	uint32_t devotionReclamationPointsUsed;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
-
-class lore_notes
-{
-public:
-	vector<string> names;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
-
-class faction_data
-{
-public:
-	float value;
-	float positiveBoost;
-	float negativeBoost;
-	uint8_t modified;
-	uint8_t unlocked;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
-
-class faction_pack
-{
-public:
-	vector<faction_data> factions;
-	uint32_t faction;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
-
-class hot_slot
-{
-public:
-	string skill;
-	string item;
-	string bitmapUp;
-	string bitmapDown;
-	wstring label;
-	uint32_t type;
-	uint32_t equipLocation;
-	uint8_t isItemSkill;
-	
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
-
-class ui_settings
-{
-public:
-	hot_slot slots[46];
-	string unknown4[5];
-	string unknown5[5];
-	uint32_t unknown2;
-	float cameraDistance;
-	uint8_t unknown6[5];
-	uint8_t unknown1;
-	uint8_t unknown3;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
-
-class tutorial_pages
-{
-public:
-	vector<uint32_t> pages;
-	
-	void read(gdc_file *);
-	void write(gdc_file *);
-};
-
-class unknown_data
-{
-public:
-	string str;
-	uint32_t num;
-};
-
-class play_stats
-{
-public:
-	string greatestMonsterKilledName[3];
-	string lastMonsterHit[3];
-	string lastMonsterHitBy[3];
-	uint32_t greatestMonsterKilledLevel[3];
-	uint32_t greatestMonsterKilledLifeAndMana[3];
-	uint32_t bossKills[3];
-	uint32_t playTime;
-	uint32_t deaths;
-	uint32_t kills;
-	uint32_t experienceFromKills;
-	uint32_t healthPotionsUsed;
-	uint32_t manaPotionsUsed;
-	uint32_t maxLevel;
-	uint32_t hitsReceived;
-	uint32_t hitsInflicted;
-	uint32_t criticalHitsInflicted;
-	uint32_t criticalHitsReceived;
-	uint32_t championKills;
-	uint32_t heroKills;	
-	uint32_t itemsCrafted;
-	uint32_t relicsCrafted;
-	uint32_t transcendentRelicsCrafted;
-	uint32_t mythicalRelicsCrafted;
-	uint32_t shrinesRestored;
-	uint32_t oneShotChestsOpened;
-	uint32_t loreNotesCollected;
-	float greatestDamageInflicted;
-	float lastHit;
-	float lastHitBy;
-	float greatestDamageReceived;
-	uint32_t survivalWaveTier;		// Crucible
-	uint32_t greatestSurvivalScore;	// Crucible
-	uint32_t cooldownRemaining;		// Number of Crucible defenses built?
-	uint32_t cooldownTotal;			// Number of Crucible blessings used?
-
-	uint32_t v_length;				// Length of vector v
-	vector<unknown_data> v;			// Usage unknown
-
-	uint32_t shatteredRealmSouls;
-	uint32_t shatteredRealmEssence;
-	uint8_t difficultySkip;
-
-	uint32_t unknown1;
-	uint32_t unknown2;
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
-
-class trigger_tokens
-{
-public:
-	vector<string> tokens[3];
-
-	void read(gdc_file *);
-	void write(gdc_file *);
-	void print();
-};
-
-class file
-{
-public:
-	FILE *fp;
-
-	file(const char *name, const char *mode)
+	for (unsigned i = 0; i < 256; i++)
 	{
-		fp = fopen(name, mode);
+		k = (k >> 1) | (k << 31);
+		k *= 39916801;
+		table[i] = k;
 	}
+}
 
-	~file()
+uint32_t gdc_file::next_int()
+{
+	uint32_t ret;
+
+	if (fread(&ret, 4, 1, fp) != 1)
+		throw std::runtime_error("Error in next_int.");
+
+	ret ^= key;
+
+	return ret;
+}
+
+void gdc_file::update_key(void *ptr, uint32_t len)
+{
+	uint8_t *p = (uint8_t *)ptr;
+
+	for (uint32_t i = 0; i < len; i++)
 	{
-		if (fp) fclose(fp);
+		key ^= table[p[i]];
 	}
+}
 
-private:
-	file(const file &); // = delete;
-	file &operator=(const file &); // = delete;
-};
-
-struct block
+uint32_t gdc_file::read_int()
 {
-	uint32_t len;
-	long end;
-};
+	uint32_t val;
 
-class gdc_file
+	if (fread(&val, 4, 1, fp) != 1)
+		throw std::runtime_error("Error in read_int.");
+
+	uint32_t ret = val ^ key;
+
+	update_key(&val, 4);
+
+	return ret;
+}
+
+uint16_t gdc_file::read_short()
 {
-private:
-	FILE *fp;
-	uint32_t key;
-	uint32_t table[256];
+	uint16_t val;
 
-public:
-	header hdr;
-	uid id;
-	character_info info;
-	character_bio bio;
-	inventory inv;
-	character_stash stash;
-	respawn_list respawns;
-	teleport_list teleports;
-	marker_list markers;
-	shrine_list shrines;
-	character_skills skills;
-	lore_notes notes;
-	faction_pack factions;
-	ui_settings ui;
-	tutorial_pages tutorials;
-	play_stats stats;
-	trigger_tokens tokens;
+	if (fread(&val, 2, 1, fp) != 1)
+		throw std::runtime_error("Error in read_short.");
 
-	void read(const char *);
-	void write(const char *);
+	uint16_t ret = val ^ key;
 
-private:
-	void read_key()
-	{
-		uint32_t k;
+	update_key(&val, 2);
 
-		if (fread(&k, 4, 1, fp) != 1)
-			throw std::runtime_error("Error in read_key.");
+	return ret;
+}
 
-		k ^= 0x55555555;
+uint8_t gdc_file::read_byte()
+{
+	uint8_t val;
 
-		key = k;
-
-		for (unsigned i = 0; i < 256; i++)
-		{
-			k = (k >> 1) | (k << 31);
-			k *= 39916801;
-			table[i] = k;
+	if (fread(&val, 1, 1, fp) != 1){
+		if (ferror(fp)){
+			perror("fread error");
+			throw std::runtime_error("Error in read_byte.");
 		}
-	}
-
-	uint32_t next_int()
-	{
-		uint32_t ret;
-
-		if (fread(&ret, 4, 1, fp) != 1)
-			throw std::runtime_error("Error in next_int.");
-
-		ret ^= key;
-
-		return ret;
-	}
-
-	void update_key(void *ptr, uint32_t len)
-	{
-		uint8_t *p = (uint8_t *)ptr;
-
-		for (uint32_t i = 0; i < len; i++)
-		{
-			key ^= table[p[i]];
-		}
-	}
-
-public:
-	uint32_t read_int()
-	{
-		uint32_t val;
-
-		if (fread(&val, 4, 1, fp) != 1)
-			throw std::runtime_error("Error in read_int.");
-
-		uint32_t ret = val ^ key;
-
-		update_key(&val, 4);
-
-		return ret;
-	}
-
-	uint16_t read_short()
-	{
-		uint16_t val;
-
-		if (fread(&val, 2, 1, fp) != 1)
-			throw std::runtime_error("Error in read_short.");
-
-		uint16_t ret = val ^ key;
-
-		update_key(&val, 2);
-
-		return ret;
-	}
-
-	uint8_t read_byte()
-	{
-		uint8_t val;
-
-		if (fread(&val, 1, 1, fp) != 1){
-			if (ferror(fp)){
-				perror("fread error");
-				throw std::runtime_error("Error in read_byte.");
+		else{
+			if (feof(fp)){
+				throw std::runtime_error("Error in read_byte: end of file reached.");
 			}
-			else{
-				if (feof(fp)){
-					throw std::runtime_error("Error in read_byte: end of file reached.");
-				}
-				throw std::runtime_error("Error in read_byte.");
-			}
+			throw std::runtime_error("Error in read_byte.");
 		}
-
-		uint8_t ret = val ^ key;
-
-		update_key(&val, 1);
-
-		return ret;
 	}
 
-	float read_float()
+	uint8_t ret = val ^ key;
+
+	update_key(&val, 1);
+
+	return ret;
+}
+
+float gdc_file::read_float()
+{
+	union { float f; int i; } u;
+	u.i = read_int();
+	return u.f;
+}
+
+uint32_t gdc_file::read_block_start(block *b)
+{
+	uint32_t ret = read_int();
+
+	b->len = next_int();
+	b->end = ftell(fp) + b->len;
+
+	return ret;
+}
+
+void gdc_file::read_block_end(block *b)
+{
+	if (ftell(fp) != b->end)
 	{
-		union { float f; int i; } u;
-		u.i = read_int();
-		return u.f;
+		throw std::runtime_error("read_block_end: expected ftell to read end of block.");
 	}
 
-	uint32_t read_block_start(block *b)
-	{
-		uint32_t ret = read_int();
+	if (next_int())
+		throw std::runtime_error("read_block_end: expected end-of-block character 0.");
+}
 
-		b->len = next_int();
-		b->end = ftell(fp) + b->len;
+void gdc_file::write_int(uint32_t val)
+{
+	if (fwrite(&val, 4, 1, fp) != 1)
+		throw std::runtime_error("Error in write_int.");
+}
 
-		return ret;
-	}
+void gdc_file::write_short(uint16_t val)
+{
+	if (fwrite(&val, 2, 1, fp) != 1)
+		throw std::runtime_error("Error in write_short.");
+}
 
-	void read_block_end(block *b)
-	{
-		if (ftell(fp) != b->end)
-		{
-			throw std::runtime_error("read_block_end: expected ftell to read end of block.");
-		}
+void gdc_file::write_byte(uint8_t val)
+{
+	if (fwrite(&val, 1, 1, fp) != 1)
+		throw std::runtime_error("Error in write_byte.");
+}
 
-		if (next_int())
-			throw std::runtime_error("read_block_end: expected end-of-block character 0.");
-	}
+void gdc_file::write_float(float val)
+{
+	if (fwrite(&val, 4, 1, fp) != 1)
+		throw std::runtime_error("Error in write_float.");
+}
 
-	void write_int(uint32_t val)
-	{
-		if (fwrite(&val, 4, 1, fp) != 1)
-			throw std::runtime_error("Error in write_int.");
-	}
+void gdc_file::write_block_start(block *b, uint32_t n)
+{
+	write_int(n);
+	write_int(0);
+	b->end = ftell(fp);
+}
 
-	void write_short(uint16_t val)
-	{
-		if (fwrite(&val, 2, 1, fp) != 1)
-			throw std::runtime_error("Error in write_short.");
-	}
+void gdc_file::write_block_end(block *b)
+{
+	long pos = ftell(fp);
 
-	void write_byte(uint8_t val)
-	{
-		if (fwrite(&val, 1, 1, fp) != 1)
-			throw std::runtime_error("Error in write_byte.");
-	}
+	if (fseek(fp, b->end - 4, SEEK_SET))
+		throw std::runtime_error("write_block_end error.");
 
-	void write_float(float val)
-	{
-		if (fwrite(&val, 4, 1, fp) != 1)
-			throw std::runtime_error("Error in write_float.");
-	}
+	write_int(pos - b->end);
 
-	void write_block_start(block *b, uint32_t n)
-	{
-		write_int(n);
-		write_int(0);
-		b->end = ftell(fp);
-	}
+	if (fseek(fp, pos, SEEK_SET))
+		throw std::runtime_error("write_block_end error.");
 
-	void write_block_end(block *b)
-	{
-		long pos = ftell(fp);
-
-		if (fseek(fp, b->end - 4, SEEK_SET))
-			throw std::runtime_error("write_block_end error.");
-
-		write_int(pos - b->end);
-
-		if (fseek(fp, pos, SEEK_SET))
-			throw std::runtime_error("write_block_end error.");
-
-		write_int(0);
-	}
-
-	int reader_position(){
-		return ftell(fp);
-	}
-};
-
-
+	write_int(0);
+}
 
 void gdc_file::read(const char *filename)
 {
 	file f(filename, "rb");
-	if (!(fp = f.fp)){ 				throw e; }
+	if (!(fp = f.fp)){ 				throw std::runtime_error("Could not open file. Are you sure it exists?"); }
 	if (fseek(fp, 0, SEEK_END)){	throw e; }
 	long end = ftell(fp);
 	if (fseek(fp, 0, SEEK_SET)){ 	throw e; }
