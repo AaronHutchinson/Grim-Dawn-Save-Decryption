@@ -1,71 +1,7 @@
 #ifndef decrypttransfer
 #define decrypttransfer
 
-typedef std::string string;
-class stash_file;
-
-template <typename T> class vector : public std::vector<T>
-{
-public:
-	void read(stash_file *);
-	void write(stash_file *);
-};
-
-class item
-{
-public:
-	string baseName;
-	string prefixName;
-	string suffixName;
-	string modifierName;
-	string transmuteName;
-	string componentName;
-	string relicBonus;
-	string augmentName;
-	uint32_t stackCount;
-	uint32_t seed;
-	uint32_t componentSeed;
-	uint32_t unknown;
-	uint32_t augmentSeed;
-	uint32_t var1;
-	float xOffset;
-	float yOffset;
-
-	void read(stash_file *);
-	void write(stash_file *);
-	void print();
-};
-
-class sack
-{
-public:
-	vector<item> items;
-	uint32_t width;
-	uint32_t height;
-
-	void read(stash_file *);
-	void write(stash_file *);
-	void print();
-};
-
-class file
-{
-public:
-	FILE *fp;
-
-	file(const char *name, const char *mode);
-	~file();
-
-private:
-	file(const file &); // = delete;
-	file &operator=(const file &); // = delete;
-};
-
-struct block
-{
-	uint32_t len;
-	long end;
-};
+//typedef std::string string;
 
 class stash_file
 {
@@ -78,7 +14,7 @@ private:
     void update_key(void *ptr, unsigned len);
 
 public:
-	vector<sack> sacks;
+	vector<stash_tab> tabs;
 	string mod;
 
 	void read(const char *);

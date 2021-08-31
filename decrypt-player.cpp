@@ -16,22 +16,35 @@ be found at https://www.lost.org.uk/grimdawn.html. Nearly all credit goes to the
 #include <vector>
 #include <exception>
 
+#include "decrypt-helper.h"
 #include "decrypt-player.h"
 
 static std::exception e;
 
-
-
-file::file(const char *name, const char *mode)
+template <typename T> void vector<T>::read(gdc_file *gdc)
 {
-	fp = fopen(name, mode);
+	uint32_t n = gdc->read_int();
+
+	this->resize(n);
+	T *ptr = this->data();
+
+	for (uint32_t i = 0; i < n; i++)
+	{
+		ptr[i].read(gdc);
+	}
 }
 
-file::~file()
+template <typename T> void vector<T>::write(gdc_file *gdc)
 {
-	if (fp) fclose(fp);
-}
+	uint32_t n = this->size();
+	gdc->write_int(n);
 
+	T *ptr = this->data();
+	for (uint32_t i = 0; i < n; i++)
+	{
+		ptr[i].write(gdc);
+	}
+}
 
 void gdc_file::read_key()
 {
@@ -271,31 +284,6 @@ void gdc_file::write(const char *filename)
 	tokens.write(this);
 
 	if (fflush(fp))	{throw e;}
-}
-
-template <typename T> void vector<T>::read(gdc_file *gdc)
-{
-	uint32_t n = gdc->read_int();
-
-	this->resize(n);
-	T *ptr = this->data();
-
-	for (uint32_t i = 0; i < n; i++)
-	{
-		ptr[i].read(gdc);
-	}
-}
-
-template <typename T> void vector<T>::write(gdc_file *gdc)
-{
-	uint32_t n = this->size();
-	gdc->write_int(n);
-
-	T *ptr = this->data();
-	for (uint32_t i = 0; i < n; i++)
-	{
-		ptr[i].write(gdc);
-	}
 }
 
 void header::read(gdc_file *gdc)
@@ -735,7 +723,7 @@ void character_stash::print()
 	}
 }
 
-void character_stash_tab::read(gdc_file *gdc)
+void stash_tab::read(gdc_file *gdc)
 {
 	block b;
 
@@ -749,7 +737,7 @@ void character_stash_tab::read(gdc_file *gdc)
 	gdc->read_block_end(&b);
 }
 
-void character_stash_tab::write(gdc_file *gdc)
+void stash_tab::write(gdc_file *gdc)
 {
 	block b;
 
@@ -759,17 +747,6 @@ void character_stash_tab::write(gdc_file *gdc)
 
 	items.write(gdc);
 	gdc->write_block_end(&b);
-}
-
-void character_stash_tab::print()
-{
-	printf("  character_stash_tab:\n");
-	printf("    width     = %" PRIu32 "\n", width);
-	printf("    height    = %" PRIu32 "\n", height);
-	for(int i = 0; i < this->items.size(); i++){
-		this->items[i].print();
-	}
-	
 }
 
 void stash_item::read(gdc_file *gdc)
@@ -784,13 +761,6 @@ void stash_item::write(gdc_file *gdc)
 	item::write(gdc);
 	gdc->write_float(x);
 	gdc->write_float(y);
-}
-
-void stash_item::print()
-{
-	this->item::print();
-	printf("      x = %f\n", this->x);
-	printf("      y = %f\n", this->y);
 }
 
 void respawn_list::read(gdc_file *gdc)
@@ -1560,24 +1530,6 @@ void item::write(gdc_file *gdc)
 	gdc->write_int(augmentSeed);
 	gdc->write_int(var1);
 	gdc->write_int(stackCount);
-}
-
-void item::print(){
-	printf("    item:\n");
-	printf("      baseName      = %s\n", this->baseName.c_str());
-	printf("      prefixName    = %s\n", this->prefixName.c_str());
-	printf("      suffixName    = %s\n", this->suffixName.c_str());
-	printf("      modifierName  = %s\n", this->modifierName.c_str());
-	printf("      transmuteName = %s\n", this->transmuteName.c_str());
-	printf("      seed          = %" PRIu32 "\n", this->seed);
-	printf("      componentName = %s\n", this->componentName.c_str());
-	printf("      relicBonus    = %s\n", this->relicBonus.c_str());
-	printf("      componentSeed = %" PRIu32 "\n", this->componentSeed);
-	printf("      augmentName   = %s\n", this->augmentName.c_str());
-	printf("      unknown       = %" PRIu32 "\n", this->unknown);
-	printf("      augmentSeed   = %" PRIu32 "\n", this->augmentSeed);
-	printf("      var1          = %" PRIu32 "\n", this->var1);
-	printf("      stackCount    = %" PRIu32 "\n", this->stackCount);
 }
 
 void uid::read(gdc_file *gdc)

@@ -16,18 +16,34 @@ be found at https://www.lost.org.uk/grimdawn.html. Nearly all credit goes to the
 #include <vector>
 #include <exception>
 
+#include "decrypt-helper.h"
 #include "decrypt-transfer.h"
 
 static std::exception e;
 
-file::file(const char *name, const char *mode)
+template <typename T> void vector<T>::read(stash_file *stash)
 {
-	fp = fopen(name, mode);
+	uint32_t n = stash->read_int();
+
+	this->resize(n);
+	T *ptr = this->data();
+
+	for (uint32_t i = 0; i < n; i++)
+	{
+		ptr[i].read(stash);
+	}
 }
 
-file::~file()
+template <typename T> void vector<T>::write(stash_file *stash)
 {
-	if (fp) fclose(fp);
+	uint32_t n = this->size();
+	stash->write_int(n);
+
+	T *ptr = this->data();
+	for (uint32_t i = 0; i < n; i++)
+	{
+		ptr[i].write(stash);
+	}
 }
 
 void stash_file::read_key()
@@ -198,36 +214,11 @@ void stash_file::write_block_end(block *b)
 	write_int(0);
 }
 
-template <typename T> void vector<T>::read(stash_file *stash)
-{
-	uint32_t n = stash->read_int();
-
-	this->resize(n);
-	T *ptr = this->data();
-
-	for (uint32_t i = 0; i < n; i++)
-	{
-		ptr[i].read(stash);
-	}
-}
-
-template <typename T> void vector<T>::write(stash_file *stash)
-{
-	uint32_t n = this->size();
-	stash->write_int(n);
-
-	T *ptr = this->data();
-	for (uint32_t i = 0; i < n; i++)
-	{
-		ptr[i].write(stash);
-	}
-}
-
 void stash_file::read(const char *filename)
 {
 	file f(filename, "rb");
 
-	if (!(fp = f.fp))					throw e;
+	if (!(fp = f.fp))					throw std::runtime_error("Could not open file. Are you sure it exists?");
 	if (fseek(fp, 0, SEEK_END)) 		throw e;
 	long end = ftell(fp);
 	if (fseek(fp, 0, SEEK_SET)) 		throw e;
@@ -244,7 +235,7 @@ void stash_file::read(const char *filename)
 	read_str(&mod);
 	if (read_byte() != 3){				throw std::runtime_error("Expected to read specific byte 3."); }
 	
-	sacks.read(this);
+	tabs.read(this);
 
 	read_block_end(&b);
 	if (ftell(fp) != end) 				throw std::runtime_error("Expected ftell to report end of file.");
@@ -267,14 +258,14 @@ void stash_file::write(const char *filename)
 	write_int(0);
 	write_str(&mod);
 	write_byte(3);
-	sacks.write(this);
+	tabs.write(this);
 
 	write_block_end(&b);
 
 	if (fflush(fp))						throw e;
 }
 
-void sack::read(stash_file *stash)
+void stash_tab::read(stash_file *stash)
 {
 	block b;
 
@@ -288,7 +279,7 @@ void sack::read(stash_file *stash)
 	stash->read_block_end(&b);
 }
 
-void sack::write(stash_file *stash)
+void stash_tab::write(stash_file *stash)
 {
 	block b;
 
@@ -299,18 +290,6 @@ void sack::write(stash_file *stash)
 	items.write(stash);
 
 	stash->write_block_end(&b);
-}
-
-void sack::print()
-{
-	printf("sack:\n");
-	printf("  width  = %" PRIu32 "\n", width);
-	printf("  height = %" PRIu32 "\n", height);
-	printf("  item ct= %i\n", items.size());
-	printf("  items:\n");
-	for(int i = 0; i < items.size(); i++){
-		items[i].print();
-	}
 }
 
 void item::read(stash_file *stash)
@@ -329,8 +308,6 @@ void item::read(stash_file *stash)
 	augmentSeed = stash->read_int();
 	var1 = stash->read_int();
 	stackCount = stash->read_int();
-	xOffset = stash->read_float();
-	yOffset = stash->read_float();
 }
 
 void item::write(stash_file *stash)
@@ -349,29 +326,20 @@ void item::write(stash_file *stash)
 	stash->write_int(augmentSeed);
 	stash->write_int(var1);
 	stash->write_int(stackCount);
-	stash->write_float(xOffset);
-	stash->write_float(yOffset);
 }
 
-void item::print()
+void stash_item::read(stash_file *gdc)
 {
-	printf("    item:\n");
-	printf("      baseName      = %s\n", this->baseName.c_str());
-	printf("      prefixName    = %s\n", this->prefixName.c_str());
-	printf("      suffixName    = %s\n", this->suffixName.c_str());
-	printf("      modifierName  = %s\n", this->modifierName.c_str());
-	printf("      transmuteName = %s\n", this->transmuteName.c_str());
-	printf("      seed          = %" PRIu32 "\n", this->seed);
-	printf("      componentName = %s\n", this->componentName.c_str());
-	printf("      relicBonus    = %s\n", this->relicBonus.c_str());
-	printf("      componentSeed = %" PRIu32 "\n", this->componentSeed);
-	printf("      augmentName   = %s\n", this->augmentName.c_str());
-	printf("      unknown       = %" PRIu32 "\n", this->unknown);
-	printf("      augmentSeed   = %" PRIu32 "\n", this->augmentSeed);
-	printf("      var1          = %" PRIu32 "\n", this->var1);
-	printf("      stackCount    = %" PRIu32 "\n", this->stackCount);
-	printf("      xOffset       = %f\n", this->xOffset);
-	printf("      yOffset       = %f\n", this->yOffset);
+	item::read(gdc);
+	x = gdc->read_float();
+	y = gdc->read_float();
+}
+
+void stash_item::write(stash_file *gdc)
+{
+	item::write(gdc);
+	gdc->write_float(x);
+	gdc->write_float(y);
 }
 
 int main(int argc, char **argv)
