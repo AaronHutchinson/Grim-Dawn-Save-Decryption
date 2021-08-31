@@ -14,7 +14,7 @@ Decryption tools for save files for the PC game Grim Dawn. These files are an up
 * to help with debugging and out of my own curiosity, I wrote primitive print functions for many of the classes to actually see what the data is.
 * exception handling was updated to report more information about where runtime errors occur.
 * changed a few variable names to be more accurate or descriptive about what information they're holding.
-* migrated class declarations to header files.
+* migrated class declarations to header files and introduced a `decrypt-helper.cpp` to store shared data, allowing both `decrypt-player.cpp` and `decrypt-transfer.cpp` to be included simultaneously.
 * `decrypt-player.cpp`:
   * an additional byte "3" is read after the header
   * `character_info`: the variable `lootMode` was changed to an array, which holds the new loot filter data.
